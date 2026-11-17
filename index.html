@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kelsis CRM</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kelsis CRM">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+  html,body{margin:0;height:100%;background:#000;color:#fff;font:15px system-ui,-apple-system,sans-serif}
+  iframe{position:fixed;top:env(safe-area-inset-top,0px);left:0;width:100%;height:calc(100% - env(safe-area-inset-top,0px));border:0;background:#fff}
+  #msg{padding:40px 24px;text-align:center;line-height:1.5}
+  #msg img{width:96px;height:96px;border-radius:22px;margin-bottom:16px}
+</style>
+</head>
+<body>
+<div id="msg" hidden><img src="icon-180.png" alt=""><div id="txt"></div></div>
+<script>
+// Посилання виду …/?k=ОСОБИСТИЙ_КЛЮЧ&s=ID_ВЕБЗАСТОСУНКУ — CRM сама видає його в ⚙ → Користувачі.
+(function () {
+  var q = new URLSearchParams(location.search), k = q.get('k'), s = q.get('s');
+  try {
+    if (k) localStorage.setItem('kelsisKey', k); else k = localStorage.getItem('kelsisKey');
+    if (s) localStorage.setItem('kelsisSrv', s); else s = localStorage.getItem('kelsisSrv');
+  } catch (e) {}
+  if (!k || !s || !/^[A-Za-z0-9_-]+$/.test(s)) {
+    document.getElementById('msg').hidden = false;
+    document.getElementById('txt').innerHTML = 'Відкрийте своє особисте посилання «для телефона»<br>(його видають у CRM: ⚙ → Користувачі).';
+    return;
+  }
+  var EXEC = 'https://script.google.com/macros/s/' + s + '/exec';
+  var f = document.createElement('iframe');
+  f.src = EXEC + '?app=1&k=' + encodeURIComponent(k);
+  f.allow = 'camera; microphone; clipboard-read; clipboard-write; fullscreen';
+  f.title = 'Kelsis CRM';
+  document.body.appendChild(f);
+})();
+</script>
+</body>
+</html>
