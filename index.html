@@ -13,8 +13,9 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="manifest" href="manifest.webmanifest">
 <style>
-  html,body{margin:0;height:100%;background:#000;color:#fff;font:15px system-ui,-apple-system,sans-serif}
-  iframe{position:fixed;top:env(safe-area-inset-top,0px);left:0;width:100%;height:calc(100% - env(safe-area-inset-top,0px));border:0;background:#fff}
+  html,body{margin:0;height:100%;background:#000;color:#fff;font:15px system-ui,-apple-system,sans-serif;overflow:hidden}
+  #box{position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;bottom:0;overflow:hidden;background:#fff}
+  iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;background:#fff}
   #msg{padding:40px 24px;text-align:center;line-height:1.5}
   #msg img{width:96px;height:96px;border-radius:22px;margin-bottom:16px}
 </style>
@@ -35,11 +36,35 @@
     return;
   }
   var EXEC = 'https://script.google.com/macros/s/' + s + '/exec';
+  var box = document.createElement('div'); box.id = 'box';
   var f = document.createElement('iframe');
   f.src = EXEC + '?app=1&k=' + encodeURIComponent(k);
   f.allow = 'camera; microphone; clipboard-read; clipboard-write; fullscreen';
   f.title = 'Kelsis CRM';
-  document.body.appendChild(f);
+  box.appendChild(f); document.body.appendChild(box);
+
+  // Сіра смужка Google зверху: CRM повідомляє свою висоту, різниця = висота смужки.
+  // Зсуваємо вікно CRM угору на цю висоту, і смужка ховається за край екрана.
+  var cut = 0;
+  function crop(b) {
+    cut = b;
+    f.style.top = -b + 'px';
+    f.style.height = 'calc(100% + ' + b + 'px)';
+  }
+  try { var c0 = +localStorage.getItem('kelsisCut:' + innerWidth); if (c0 > 0 && c0 <= 160) crop(c0); } catch (e) {}
+  addEventListener('message', function (e) {
+    var d = e.data;
+    if (!d || d.kelsis !== 'h' || !(d.h > 0)) return;
+    var og = String(e.origin); if (og !== 'null' && !/^https:\/\/[a-z0-9.-]+\.googleusercontent\.com$/.test(og)) return;
+    var b = Math.round(f.getBoundingClientRect().height - d.h);
+    if (b < 0 || b > 160) return;          // щось не так — нічого не чіпаємо
+    if (Math.abs(b - cut) < 1) return;
+    crop(b);
+    try { localStorage.setItem('kelsisCut:' + innerWidth, b); } catch (e) {}
+  });
+  addEventListener('resize', function () {
+    try { var c = +localStorage.getItem('kelsisCut:' + innerWidth); if (c > 0 && c <= 160 && c !== cut) crop(c); } catch (e) {}
+  });
 })();
 </script>
 </body>
